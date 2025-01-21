@@ -1,4 +1,7 @@
 
+using Delivery.Resutruant.API.DataBase;
+using Microsoft.EntityFrameworkCore;
+
 namespace RestuarantGit
 {
     public class Program
@@ -15,6 +18,10 @@ namespace RestuarantGit
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Configure database context with SQL Server
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
