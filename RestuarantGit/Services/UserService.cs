@@ -84,6 +84,18 @@ public class UserService : IUserService
         var user = await _userRepository.GetUserByIdAsync(userId);
         return user == null ? null : _mapper.Map<UserProfileDto>(user);
     }
+    public async Task<IdentityResult> UpdateUserProfileAsync(string userId, UpdateUserProfileDto updateDto)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
+        if (user == null)
+        {
+            return IdentityResult.Failed(new IdentityError { Description = "User not found." });
+        }
+
+        _mapper.Map(updateDto, user);
+        return await _userRepository.UpdateUserAsync(user);
+    }
 
 
 }

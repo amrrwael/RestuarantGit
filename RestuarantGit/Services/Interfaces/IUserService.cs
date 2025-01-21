@@ -10,6 +10,7 @@ namespace Delivery.Resutruant.API.Services.Interfaces
         Task<IdentityResult> RegisterUserAsync(User user, string password);
         Task<string> LoginUserAsync(string email, string password);
         Task<UserProfileDto> GetUserProfileAsync(string userId);
+        Task<IdentityResult> UpdateUserProfileAsync(string userId, UpdateUserProfileDto updateUserProfileDto);
 
     }
 }

@@ -51,5 +51,10 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
+    public async Task<IdentityResult> UpdateUserAsync(User user)
+    {
+        _context.Users.Update(user);
+        return await _userManager.UpdateAsync(user);
+    }
 
 }

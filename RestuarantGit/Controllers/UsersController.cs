@@ -192,6 +192,50 @@ namespace Delivery.Resutruant.API.Controllers
                 return HandleException(ex);
             }
         }
+        [HttpPut("profile")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad Request")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize] // Require authentication
+        [SwaggerOperation(summary: "Edit user profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileDto updateDto)
+        {
+            try
+            {
+                // Check for invalid model state and return BadRequest
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Get user ID from the token
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized();
+                }
+
+                // Example check for role or permission (replace with your actual logic)
+                if (!User.IsInRole("User") && !User.IsInRole("Admin")) // Example condition for 403 Forbidden
+                {
+                    return Forbid(); // Return 403 Forbidden if the user does not have the required role
+                }
+
+                var result = await _userService.UpdateUserProfileAsync(userId, updateDto);
+                if (!result.Succeeded)
+                {
+                    return BadRequest(result.Errors); // Return 400 Bad Request if update failed
+                }
+
+                return Ok();
+
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
 
 
     }

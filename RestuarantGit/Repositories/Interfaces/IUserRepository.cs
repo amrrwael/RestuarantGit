@@ -9,6 +9,7 @@ namespace Delivery.Resutruant.API.Repositories.Interfaces
         Task<User> AuthenticateUserAsync(string email, string password);
         Task<User> GetUserByIdAsync(string userId);
         Task<User> GetUserByEmailAsync(string email);
+        Task<IdentityResult> UpdateUserAsync(User user);
 
     }
 }

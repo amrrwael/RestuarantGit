@@ -19,6 +19,9 @@ namespace Delivery.Resutruant.API.Configurations
                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                .ReverseMap();
+
+            CreateMap<UpdateUserProfileDto, User>().ReverseMap();
+
         }
     }
 }
