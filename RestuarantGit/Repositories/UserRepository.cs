@@ -26,4 +26,30 @@ public class UserRepository : IUserRepository
         return result;
     }
 
+    public async Task<User> AuthenticateUserAsync(string email, string password)
+    {
+        // Retrieve the user by email.
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user != null)
+        {
+            // Attempt to sign in the user with the provided password.
+            var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
+            if (result.Succeeded)
+            {
+                return user; // Return the authenticated user if sign-in is successful.
+            }
+        }
+
+        return null; // Return null if authentication fails.
+    }
+    public async Task<User> GetUserByIdAsync(string userId)
+    {
+        return await _context.Users.FindAsync(userId);
+    }
+    public async Task<User> GetUserByEmailAsync(string email)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    }
+
 }

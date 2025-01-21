@@ -71,7 +71,36 @@ namespace Delivery.Resutruant.API.Controllers
                 return HandleException(ex);
             }
         }
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TokenResponseDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [SwaggerOperation(summary: "Log in to the system")]
+        public async Task<IActionResult> Login([FromBody] LoginDto userDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    // Return validation errors
+                    return BadRequest(ModelState);
+                }
 
-       
+                var token = await _userService.LoginUserAsync(userDto.Email, userDto.Password);
+                if (token != null)
+                {
+                    return Ok(new TokenResponseDto { Token = token });
+                }
+
+                // Return bad request if login fails
+                return BadRequest(new { Message = "Invalid email or password." });
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
+
     }
 }
