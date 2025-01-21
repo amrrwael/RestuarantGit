@@ -1,4 +1,5 @@
 
+using Delivery.Resutruant.API.Configurations;
 using Delivery.Resutruant.API.DataBase;
 using Delivery.Resutruant.API.Models.Domain;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -78,6 +79,9 @@ namespace RestuarantGit
                         Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]))
                 };
             });
+
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
