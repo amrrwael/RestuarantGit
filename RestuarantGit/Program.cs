@@ -1,5 +1,6 @@
 
 using Delivery.Resutruant.API.DataBase;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace RestuarantGit
@@ -40,6 +41,18 @@ namespace RestuarantGit
             app.MapControllers();
 
             app.Run();
+        }
+        private static async Task CreateRoles(RoleManager<IdentityRole> roleManager)
+        {
+            string[] roleNames = { "User", "Admin" };
+            foreach (var roleName in roleNames)
+            {
+                var roleExist = await roleManager.RoleExistsAsync(roleName);
+                if (!roleExist)
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
         }
     }
 }
