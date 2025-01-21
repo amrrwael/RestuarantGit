@@ -6,7 +6,7 @@ namespace RestuarantGit
         public static void Main(string[] args)
         {
 
-            //afqefeq
+            //asfqw21323133123
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
