@@ -100,6 +100,62 @@ namespace Delivery.Resutruant.API.Controllers
                 return HandleException(ex);
             }
         }
+        [HttpPost("logout")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad Request")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize]
+        [SwaggerOperation(summary: "Log out system user")]
+        public async Task<IActionResult> Logout([FromServices] IBlacklistService blacklistService)
+        {
+            try
+            {
+                // Ensure the Authorization header exists
+                if (!Request.Headers.ContainsKey("Authorization"))
+                {
+                    return BadRequest(new { error = "Authorization header is missing." });
+                }
+
+                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+
+                // Validate the token format
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest(new { error = "Invalid token format." });
+                }
+
+                // Simulate a case where the token is invalid or unauthorized
+                if (!User.Identity?.IsAuthenticated ?? false)
+                {
+                    return Unauthorized(new { error = "User is not authenticated." });
+                }
+
+                if (!User.IsInRole("User") && !User.IsInRole("Admin"))
+                {
+                    return Forbid("You do not have permission to perform this action.");
+                }
+
+                // Simulate a database or service failure
+                if (blacklistService == null)
+                {
+                    return StatusCode(500, new { error = "Blacklist service is unavailable." });
+                }
+
+                // Get token expiration (assuming tokens expire in 60 minutes, adjust accordingly)
+                var expiration = DateTime.UtcNow.AddMinutes(60);
+
+                // Add the token to the blacklist
+                await blacklistService.AddToBlacklistAsync(token, expiration);
+
+                return Ok(new { message = "Logged out successfully." });
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
 
 
     }

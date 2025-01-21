@@ -3,6 +3,7 @@ using Delivery.Resutruant.API.Configurations;
 using Delivery.Resutruant.API.DataBase;
 using Delivery.Resutruant.API.Models.Domain;
 using Delivery.Resutruant.API.Repositories.Interfaces;
+using Delivery.Resutruant.API.Services;
 using Delivery.Resutruant.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -85,6 +86,7 @@ namespace RestuarantGit
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddSingleton<IBlacklistService, BlacklistService>();
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
             var app = builder.Build();
