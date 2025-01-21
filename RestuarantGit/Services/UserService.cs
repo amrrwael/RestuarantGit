@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Delivery.Resutruant.API.Configurations;
 using Delivery.Resutruant.API.Models.Domain;
+using Delivery.Resutruant.API.Models.DTO;
 using Delivery.Resutruant.API.Repositories.Interfaces;
 using Delivery.Resutruant.API.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -77,6 +78,11 @@ public class UserService : IUserService
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         return claims;
+    }
+    public async Task<UserProfileDto> GetUserProfileAsync(string userId)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        return user == null ? null : _mapper.Map<UserProfileDto>(user);
     }
 
 

@@ -156,6 +156,42 @@ namespace Delivery.Resutruant.API.Controllers
                 return HandleException(ex);
             }
         }
+        [HttpGet("profile")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(UserProfileDto))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize]
+        [SwaggerOperation(summary: "Get user profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Get user ID from the token
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized();
+                }
+
+                // Check if user has the required role (User or Admin)
+                if (!User.IsInRole("User") && !User.IsInRole("Admin"))
+                {
+                    return Forbid();
+                }
+
+                var userProfile = await _userService.GetUserProfileAsync(userId);
+                if (userProfile == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(userProfile);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
 
 
     }
