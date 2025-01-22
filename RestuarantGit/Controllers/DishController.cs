@@ -2,6 +2,7 @@
 using Delivery.Resutruant.API.Models.Domain;
 using Delivery.Resutruant.API.Models.DTO;
 using Delivery.Resutruant.API.Models.Enums;
+using Delivery.Resutruant.API.Models.Pagination;
 using Delivery.Resutruant.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,16 +35,29 @@ namespace Delivery.Resutruant.API.Controllers
         [AllowAnonymous]
         [HttpGet]
         [SwaggerOperation(summary: "Get a list of dishes (menu)")]
-        [ProducesResponseType(typeof(<DishDto>), 200)]
+        [ProducesResponseType(typeof(PagedResult<DishDto>), 200)]
         [ProducesResponseType(400)]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
         public async Task<IActionResult> GetAllDishes([FromQuery] Category? category = null,
             [FromQuery] bool? vegetarian = false,
+            [FromQuery] SortOption sorting = SortOption.NameAsc,
+            [FromQuery] int page = 1)
         {
             try
             {
-                var Dishes = await _dishService.GetAllDishesAsync(category, vegetarian);
-                return Ok(Dishes);
+                // Validate the page number
+                if (page < 1)
+                {
+                    return BadRequest(new CustomErrorSchema
+                    {
+                        Status = "error",
+                        Message = "Page number must be greater than or equal to 1."
+                    });
+                }
+
+                // Retrieve paginated dishes
+                var pagedDishes = await _dishService.GetAllDishesAsync(category, vegetarian, sorting, page);
+                return Ok(pagedDishes);
             }
             catch (Exception ex)
             {
@@ -58,7 +72,8 @@ namespace Delivery.Resutruant.API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(CustomErrorSchema))]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            try { 
+            try
+            {
                 var dish = await _dishService.GetDishByIdAsync(id);
                 if (dish == null)
                     return NotFound();
