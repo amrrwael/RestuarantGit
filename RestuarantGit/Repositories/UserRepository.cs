@@ -10,12 +10,29 @@ public class UserRepository : IUserRepository
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly ApplicationDbContext _context;
+    private readonly IBasketRepository _basketRepository;
 
-    public UserRepository(UserManager<User> userManager, SignInManager<User> signInManager, ApplicationDbContext context)
+    public UserRepository(UserManager<User> userManager, SignInManager<User> signInManager, ApplicationDbContext context, IBasketRepository basketRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
+        _basketRepository = basketRepository;
+    }
+
+    public async Task<IdentityResult> RegisterUserAsync(User user, string password)
+    {
+        // Create a new user in the database.
+        var result = await _userManager.CreateAsync(user, password);
+
+        if (result.Succeeded)
+        {
+            // If registration succeeds, create a new basket for the user.
+            var basket = new Basket { UserEmail = user.Email };
+            await _basketRepository.CreateBasketAsync(basket);
+        }
+
+        return result;
     }
 
     // Registers a new user with the given credentials and initializes their basket.
