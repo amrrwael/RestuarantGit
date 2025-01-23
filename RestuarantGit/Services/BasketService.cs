@@ -71,6 +71,36 @@ namespace Delivery.Resutruant.API.Services
             return true;
         }
 
-        
+        public async Task<bool> RemoveDishFromBasketAsync(string userEmail, Guid dishId, bool increase)
+        {
+            Console.WriteLine($"Removing dish with ID {dishId} from basket for user: {userEmail}");
+            var basket = await _basketRepository.GetBasketByUserEmailAsync(userEmail);
+            if (basket == null)
+            {
+                Console.WriteLine("Basket not found.");
+                return false;
+            }
+
+            var basketItem = basket.Items.FirstOrDefault(item => item.DishId == dishId);
+            if (basketItem == null)
+            {
+                Console.WriteLine("Dish not found in the basket.");
+                return false;
+            }
+
+            if (increase && basketItem.Amount > 1)
+            {
+                basketItem.Amount--;
+                basketItem.TotalPrice = basketItem.Amount * basketItem.Price;
+            }
+            else
+            {
+                basket.Items.Remove(basketItem);
+            }
+
+            await _basketRepository.UpdateBasketAsync(basket);
+            Console.WriteLine("Dish removed successfully.");
+            return true;
+        }
     }
 }

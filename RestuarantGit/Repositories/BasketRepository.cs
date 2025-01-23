@@ -80,6 +80,34 @@ namespace Delivery.Resutruant.API.Repositories
             Console.WriteLine($"Added item {basketItem.DishId} to basket for user: {userEmail}");
             await UpdateBasketAsync(basket);
         }
-    
+
+        public async Task RemoveBasketItemAsync(string userEmail, Guid itemId)
+        {
+            var basket = await GetBasketByUserEmailAsync(userEmail);
+            if (basket == null)
+            {
+                Console.WriteLine($"Basket not found for user: {userEmail}");
+                return;
+            }
+
+            var item = basket.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item != null)
+            {
+                basket.Items.Remove(item);
+                Console.WriteLine($"Removed item {itemId} from basket.");
+                await UpdateBasketAsync(basket);
+            }
+        }
+
+        public async Task DeleteAllItemsByBasketIdAsync(Guid basketId)
+        {
+            Console.WriteLine($"Deleting all items for basket ID: {basketId}");
+            var items = await _context.BasketItems
+                .Where(item => item.BasketId == basketId)
+                .ToListAsync();
+
+            _context.BasketItems.RemoveRange(items);
+            await _context.SaveChangesAsync();
+        }
     }
 }

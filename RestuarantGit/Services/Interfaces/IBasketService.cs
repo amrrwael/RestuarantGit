@@ -8,5 +8,6 @@ namespace Delivery.Resutruant.API.Services.Interfaces
     {
         Task<BasketDto> GetUserBasketAsync(string userEmail);
         Task<bool> AddDishToBasketAsync(string userEmail, Guid dishId);
+        Task<bool> RemoveDishFromBasketAsync(string userEmail, Guid dishId, bool increase);
     }
 }

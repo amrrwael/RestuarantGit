@@ -86,6 +86,8 @@ namespace RestuarantGit
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IBasketRepository,IBasketRepository>();
+            builder.Services.AddScoped<IBasketService, BasketService>();
             builder.Services.AddSingleton<IBlacklistService, BlacklistService>();
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
