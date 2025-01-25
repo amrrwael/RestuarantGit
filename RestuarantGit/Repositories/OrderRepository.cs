@@ -26,5 +26,21 @@ namespace Delivery.Resutruant.API.Repositories
             return order;
         }
 
+        // Retrieves all orders associated with a specific user by their email.
+        public async Task<IEnumerable<Order>> GetAllOrdersByUserEmailAsync(string userEmail)
+        {
+            return await _context.Orders
+                .Where(o => o.UserEmail == userEmail)
+                .ToListAsync();
+        }
+
+        // Retrieves a specific order by its ID and user email, including its items.
+        public async Task<Order> GetOrderByIdAsync(Guid orderId, string userEmail)
+        {
+            return await _context.Orders
+                .Include(o => o.Items)
+                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserEmail == userEmail);
+        }
+
     }
 }

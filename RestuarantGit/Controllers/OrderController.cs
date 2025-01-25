@@ -32,7 +32,88 @@ namespace Delivery.Resutruant.API.Controllers
             };
         }
 
-        
+        [HttpGet("{id}")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(List<OrderDto>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize]
+        [SwaggerOperation(Summary = "Get information about concrete order")]
+        public async Task<IActionResult> GetOrderById(Guid id)
+        {
+            try
+            {
+                // Retrieve the user's email from the JWT token
+                var userEmail = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized(new { Error = "User email not found or token is invalid." });
+                }
+
+                // Optional: Verify the user's role for access control (e.g., User or Admin)
+                var isAuthorized = User.IsInRole("User") || User.IsInRole("Admin");
+                if (!isAuthorized)
+                {
+                    return Forbid("You do not have permission to access this resource.");
+                }
+
+                // Fetch order details
+                var order = await _orderService.GetOrderDetailsAsync(id, userEmail);
+
+                // Check if the order exists
+                if (order == null)
+                {
+                    return NotFound(new { Message = "Order not found or you do not have access to this order." });
+                }
+
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
+        [HttpGet]
+        [SwaggerOperation(Summary = "Get a list of orders")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(List<OrderSummaryDto>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden.")]
+        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            try
+            {
+                var userEmail = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized(new { Error = "User email not found or token is invalid." });
+                }
+
+                var isAuthorized = User.IsInRole("User") || User.IsInRole("Admin");
+                if (!isAuthorized)
+                {
+                    return Forbid();
+                }
+
+                // Get the orders
+                var orders = await _orderService.GetAllOrdersAsync(userEmail);
+
+                if (orders == null || !orders.Any())
+                {
+                    return NotFound(new { Message = "No orders found for the user." });
+                }
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
 
         [HttpPost]
         [SwaggerResponse(StatusCodes.Status200OK, "Success")]
@@ -71,14 +152,14 @@ namespace Delivery.Resutruant.API.Controllers
                     return BadRequest("Failed to create order. Your basket might be empty.");
                 }
 
-                return Ok(orderDto); 
+                return Ok(orderDto);
             }
             catch (Exception ex)
             {
-                return HandleException(ex); 
+                return HandleException(ex);
             }
         }
 
-        
+        }
     }
 }

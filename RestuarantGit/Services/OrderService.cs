@@ -28,7 +28,7 @@ namespace Delivery.Resutruant.API.Services
             var basket = await _basketRepository.GetBasketByUserEmailAsync(userEmail);
             if (basket == null || !basket.Items.Any())
             {
-                
+
                 return null;
             }
 
@@ -38,7 +38,7 @@ namespace Delivery.Resutruant.API.Services
                 UserEmail = userEmail,
                 OrderTime = DateTime.UtcNow, // Current time as the order time.
                 DeliveryTime = orderCreateDto.DeliveryTime, // Delivery time provided by the user.
-                Status = "InProcess", 
+                Status = "InProcess",
                 Address = orderCreateDto.Address,
                 Items = basket.Items.Select(item => new OrderItem
                 {
@@ -64,5 +64,22 @@ namespace Delivery.Resutruant.API.Services
 
             return _mapper.Map<OrderDto>(createdOrder);
         }
+
+        // Retrieves all orders for the specified user.
+        public async Task<IEnumerable<OrderSummaryDto>> GetAllOrdersAsync(string userEmail)
+        {
+            var orders = await _orderRepository.GetAllOrdersByUserEmailAsync(userEmail);
+            return _mapper.Map<IEnumerable<OrderSummaryDto>>(orders);
+        }
+
+        // Retrieves detailed information about a specific order for the user.
+        public async Task<OrderDto> GetOrderDetailsAsync(Guid orderId, string userEmail)
+        {
+            var order = await _orderRepository.GetOrderByIdAsync(orderId, userEmail);
+            return order == null ? null : _mapper.Map<OrderDto>(order);
+        }
+
+        /// Confirms an order by updating its status to "Delivered".
+       
     }
 }
