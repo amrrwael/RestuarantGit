@@ -36,7 +36,15 @@ namespace Delivery.Resutruant.API.Repositories
                 query = query.Where(d => d.Category == category.Value);
             }
 
-            
+            // Join with Ratings table and calculate the average rating for each dish
+            var dishRatingsQuery = from dish in query
+                                   join rating in _dbContext.Ratings on dish.Id equals rating.DishId into ratings
+                                   select new
+                                   {
+                                       Dish = dish,
+                                       AverageRating = ratings.Any() ? ratings.Average(r => r.Value) : (double?)null
+                                   };
+
             // Apply sorting
             switch (sortOption)
             {
@@ -90,7 +98,7 @@ namespace Delivery.Resutruant.API.Repositories
             return await _dbContext.Dishes.FirstOrDefaultAsync(d => d.Id == id);
         }
 
-        
+
     }
 }
 

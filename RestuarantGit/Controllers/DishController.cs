@@ -16,10 +16,12 @@ namespace Delivery.Resutruant.API.Controllers
     public class DishController : ControllerBase
     {
         private readonly IDishService _dishService;
+        private readonly IRateService _rateService;
 
-        public DishController(IDishService dishService)
+        public DishController(IDishService dishService, IRateService rateService)
         {
             _dishService = dishService;
+            _rateService = rateService;
         }
 
         private IActionResult HandleException(Exception ex)
@@ -86,6 +88,95 @@ namespace Delivery.Resutruant.API.Controllers
                 return HandleException(ex);
             }
         }
+
+        [HttpGet("{dishId:Guid}/rating/check")]
+        [SwaggerOperation(summary: "Check if user is able to set rating for the dish")]
+        [ProducesResponseType(typeof(bool), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize]
+        public async Task<IActionResult> CanRateDishAsync(Guid dishId)
+        {
+            try
+            {
+                // Retrieve user email from the token
+                var userEmail = GetUserEmailFromToken();
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized(new { Error = "User email could not be retrieved from token." });
+                }
+
+                // Check if the dish exists
+                var dishExists = await _dishService.GetDishByIdAsync(dishId);
+                if (dishExists == null)
+                {
+                    return NotFound(new { Message = "Dish not found." });
+                }
+
+                // Check if the user is authorized to rate this dish (optional, based on your app's rules)
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+                if (userRole != "User")
+                {
+                    return Forbid("Only regular users can rate dishes.");
+                }
+
+                // Check if the user can rate the dish
+                var canRate = await _rateService.CanRateDishAsync(userEmail, dishId);
+                return Ok(canRate);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
+        [HttpPost("{dishId:Guid}/rating/{rate:int}")]
+        [SwaggerOperation(summary: "Set a rating for a dish")]
+        [SwaggerResponse(StatusCodes.Status200OK, "OK")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize]
+        public async Task<IActionResult> RateDishAsync(Guid dishId, int rate)
+        {
+            if (rate < 1 || rate > 10)
+            {
+                return BadRequest("Rating must be between 1 and 10.");
+            }
+
+            try
+            {
+                var userEmail = GetUserEmailFromToken();
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User email could not be retrieved from token.");
+                }
+
+                var dishExists = await _dishService.GetDishByIdAsync(dishId);
+                if (dishExists == null)
+                {
+                    return NotFound("Dish not found.");
+                }
+
+                var canRate = await _rateService.CanRateDishAsync(userEmail, dishId);
+                if (!canRate)
+                {
+                    return BadRequest("You can only rate dishes from orders that you have received.");
+                }
+
+                await _rateService.RateDishAsync(userEmail, dishId, rate);
+                return Ok("Rating submitted successfully.");
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
 
         private string GetUserEmailFromToken()
         {
