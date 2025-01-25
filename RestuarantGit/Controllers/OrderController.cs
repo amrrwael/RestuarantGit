@@ -160,6 +160,53 @@ namespace Delivery.Resutruant.API.Controllers
             }
         }
 
+        [HttpPut("{id}/status")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success")]
+        [ProducesResponseType(400)]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "InternalServerError", typeof(CustomErrorSchema))]
+        [Authorize]
+        [SwaggerOperation(Summary = "Confirm order delivery")]
+        public async Task<IActionResult> ConfirmOrder(Guid id)
+        {
+            try
+            {
+                // Check for invalid ID
+                if (id == Guid.Empty)
+                {
+                    return BadRequest("Invalid order ID.");
+                }
+
+                // Get user email from the token
+                var userEmail = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User email not found.");
+                }
+
+                // Check if the user has the required role or permission (example check)
+                if (!User.IsInRole("Admin") && !User.IsInRole("User"))
+                {
+                    return Forbid("You do not have permission to confirm this order.");
+                }
+
+                // Confirm the order
+                var confirmed = await _orderService.ConfirmOrderAsync(id, userEmail);
+
+                // Handle the case where the order is not found or already delivered
+                if (!confirmed)
+                {
+                    return NotFound("Order not found or already delivered.");
+                }
+
+                return Ok(new { message = "Order confirmed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
         }
     }
 }

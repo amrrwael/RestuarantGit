@@ -10,5 +10,6 @@ namespace Delivery.Resutruant.API.Services.Interfaces
         Task<OrderDto> CreateOrderAsync(string userEmail, OrderCreateDto orderCreateDto);
         Task<IEnumerable<OrderSummaryDto>> GetAllOrdersAsync(string userEmail);
         Task<OrderDto> GetOrderDetailsAsync(Guid orderId, string userEmail);
+        Task<bool> ConfirmOrderAsync(Guid orderId, string userEmail);
     }
 }

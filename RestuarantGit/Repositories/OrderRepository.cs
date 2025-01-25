@@ -42,5 +42,22 @@ namespace Delivery.Resutruant.API.Repositories
                 .FirstOrDefaultAsync(o => o.Id == orderId && o.UserEmail == userEmail);
         }
 
+        // Updates an existing order in the database.
+        public async Task<bool> UpdateOrderAsync(Order order)
+        {
+            _context.Orders.Update(order);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        // Retrieves orders by a specific user and order status, including the items in each order.
+        public async Task<List<Order>> GetOrdersByUserWithStatusAsync(string userEmail, string status)
+        {
+            // Query the database for orders with the specified user email and status
+            return await _context.Orders
+                .Where(order => order.UserEmail == userEmail && order.Status == status)
+                .Include(order => order.Items)
+                .ThenInclude(orderItem => orderItem.Dish)
+                .ToListAsync();
+        }
     }
 }

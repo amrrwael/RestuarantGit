@@ -80,6 +80,17 @@ namespace Delivery.Resutruant.API.Services
         }
 
         /// Confirms an order by updating its status to "Delivered".
-       
+        public async Task<bool> ConfirmOrderAsync(Guid orderId, string userEmail)
+        {
+            var order = await _orderRepository.GetOrderByIdAsync(orderId, userEmail);
+            if (order == null || order.Status == "Delivered")
+            {
+                return false;
+            }
+
+            // Update the order's status to "Delivered".
+            order.Status = "Delivered";
+            return await _orderRepository.UpdateOrderAsync(order);
+        }
     }
 }
